@@ -12,6 +12,10 @@ require_once __DIR__ . '/database.php';
 
 function startSession(): void {
     if (session_status() === PHP_SESSION_NONE) {
+        // Security hardening for sessions
+        ini_set('session.use_only_cookies', 1);
+        ini_set('session.use_strict_mode', 1);
+        
         session_name(SESSION_NAME);
         session_set_cookie_params([
             'lifetime' => 0,
@@ -29,10 +33,12 @@ function isLoggedIn(): bool {
     return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 }
 
-function getCurrentUser(): ?array {
+function getCurrentUser(bool $refresh = false): ?array {
     if (!isLoggedIn()) return null;
     static $user = null;
-    if ($user === null) {
+    
+    // $refresh true হলে ডাটাবেস থেকে লেটেস্ট ডাটা আনবে
+    if ($user === null || $refresh) {
         $user = Database::fetchOne(
             "SELECT u.*, r.name as role_name, r.label as role_label,
                     c.company_name, c.status as company_status
@@ -80,7 +86,7 @@ function hasPermission(string $module, string $action): bool {
     // Check if company is approved (for company users)
     if ($user['company_id'] && $user['company_status'] !== 'approved') return false;
 
-    // Check custom permissions in JSON (can add or revoke specific perms)
+    // Check custom permissions in JSON
     if (!empty($user['custom_perms'])) {
         $custom = json_decode($user['custom_perms'], true);
         $key = "$module.$action";
@@ -159,7 +165,7 @@ function csrfField(): string {
 }
 
 // ============================================================
-// FILE UPLOAD
+// FILE UPLOAD & MANAGEMENT
 // ============================================================
 
 function uploadPhoto(array $file, string $subfolder = 'photos'): array {
@@ -183,15 +189,16 @@ function uploadPhoto(array $file, string $subfolder = 'photos'): array {
         return $result;
     }
 
-    $ext        = match($mimeType) {
+    $ext = match($mimeType) {
         'image/jpeg' => 'jpg',
         'image/png'  => 'png',
         'image/webp' => 'webp',
         default      => 'jpg'
     };
-    $dir        = UPLOAD_PATH . $subfolder . '/' . date('Y/m');
-    $filename   = date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-    $fullPath   = $dir . '/' . $filename;
+
+    $dir          = UPLOAD_PATH . $subfolder . '/' . date('Y/m');
+    $filename     = date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    $fullPath     = $dir . '/' . $filename;
     $relativePath = $subfolder . '/' . date('Y/m') . '/' . $filename;
 
     if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
@@ -210,12 +217,17 @@ function uploadPhoto(array $file, string $subfolder = 'photos'): array {
 }
 
 function deleteUploadedFile(string $relativePath): void {
+    if (empty($relativePath)) return;
+    
     // Path Traversal protection
     $fullPath = realpath(UPLOAD_PATH . ltrim($relativePath, '/'));
     $uploadBase = realpath(UPLOAD_PATH);
-    // UPLOAD_PATH এর বাইরে যাওয়া ব্লক করো
+    
+    // UPLOAD_PATH এর বাইরে যাওয়া ব্লক করো এবং ফাইল থাকলে ডিলিট করো
     if ($fullPath && $uploadBase && str_starts_with($fullPath, $uploadBase)) {
-        @unlink($fullPath);
+        if (file_exists($fullPath)) {
+            @unlink($fullPath);
+        }
     }
 }
 
@@ -241,11 +253,12 @@ function logActivity(string $action, string $module, array $options = []): void 
         ]);
     } catch (Exception $e) {
         // Logging should never break the app
+        error_log("Activity Log Error: " . $e->getMessage());
     }
 }
 
 // ============================================================
-// NOTIFICATIONS
+// NOTIFICATIONS (Fixed Logic)
 // ============================================================
 
 function createNotification(string $title, string $message, array $options = []): void {
@@ -261,9 +274,11 @@ function createNotification(string $title, string $message, array $options = [])
 }
 
 function getUnreadNotifications(int $userId, int $companyId = 0): array {
-    $params = [$userId];  // শুধু একটি ? এর জন্য একটি param
+    $params = [$userId];
     $companyClause = '';
-    if ($companyId) {
+    
+    // সংশোধিত লজিক: ইউজার আইডি বা কোম্পানির জন্য নির্দিষ্ট নোটিফিকেশন আনা
+    if ($companyId > 0) {
         $companyClause = ' OR (company_id = ? AND user_id IS NULL)';
         $params[] = $companyId;
     }
@@ -312,12 +327,10 @@ function updateSetting(string $key, string $value): void {
 // ============================================================
 
 function redirect(string $url): void {
-    // Open Redirect protection — শুধু internal URL allow
     $parsed = parse_url($url);
     if (!empty($parsed['host'])) {
         $siteHost = parse_url(SITE_URL, PHP_URL_HOST);
         if ($parsed['host'] !== $siteHost) {
-            // বাইরের URL হলে dashboard এ নিয়ে যাও
             header('Location: ' . SITE_URL . '/dashboard.php');
             exit;
         }
@@ -327,7 +340,7 @@ function redirect(string $url): void {
 }
 
 function sanitize(string $input): string {
-    return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(trim($input), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 function getClientIp(): string {
@@ -352,10 +365,10 @@ function formatDate(string $date, string $format = 'd M Y, h:i A'): string {
 
 function timeAgo(string $datetime): string {
     $diff = time() - strtotime($datetime);
-    if ($diff < 60)     return $diff . ' সেকেন্ড আগে';
-    if ($diff < 3600)   return floor($diff / 60) . ' মিনিট আগে';
-    if ($diff < 86400)  return floor($diff / 3600) . ' ঘন্টা আগে';
-    if ($diff < 604800) return floor($diff / 86400) . ' দিন আগে';
+    if ($diff < 60)      return $diff . ' সেকেন্ড আগে';
+    if ($diff < 3600)    return floor($diff / 60) . ' মিনিট আগে';
+    if ($diff < 86400)   return floor($diff / 3600) . ' ঘন্টা আগে';
+    if ($diff < 604800)  return floor($diff / 86400) . ' দিন আগে';
     return formatDate($datetime, 'd M Y');
 }
 
@@ -422,8 +435,7 @@ function jsonResponse(array $data, int $code = 200): void {
 }
 
 // ============================================================
-// RATE LIMITING — AJAX endpoint protection
-// Session-based: max $limit requests per $windowSeconds
+// RATE LIMITING
 // ============================================================
 function checkRateLimit(string $key, int $limit = 30, int $windowSeconds = 60): void {
     startSession();
@@ -436,7 +448,6 @@ function checkRateLimit(string $key, int $limit = 30, int $windowSeconds = 60): 
 
     $rl = &$_SESSION[$sessionKey];
 
-    // নতুন window শুরু হলে রিসেট
     if ($now - $rl['window_start'] >= $windowSeconds) {
         $rl = ['count' => 0, 'window_start' => $now];
     }
@@ -453,7 +464,7 @@ function checkRateLimit(string $key, int $limit = 30, int $windowSeconds = 60): 
     }
 }
 
-// Flash messages
+// FLASH MESSAGES
 function setFlash(string $type, string $message): void {
     startSession();
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
