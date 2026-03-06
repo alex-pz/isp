@@ -1,0 +1,4 @@
+[05-Mar-2026 23:34:00 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Call to undefined method Database::lastInsertId() in /home/ksbnetne/kib.ksbnet.net/modules/defaulter/legal_notice.php:82
+Stack trace:
+#0 {main}
+  thrown in /home/ksbnetne/kib.ksbnet.net/modules/defaulter/legal_notice.php on line 82

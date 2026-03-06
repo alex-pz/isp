@@ -1,0 +1,27 @@
+[06-Mar-2026 00:23:00 Asia/Dhaka] PHP Warning:  Trying to access array offset on value of type null in /home/ksbnetne/kib.ksbnet.net/dashboard.php on line 13
+[06-Mar-2026 00:23:00 Asia/Dhaka] PHP Warning:  Trying to access array offset on value of type null in /home/ksbnetne/kib.ksbnet.net/dashboard.php on line 14
+[06-Mar-2026 00:23:00 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'GROUP BY month ORDER BY month ASC' at line 7 in /home/ksbnetne/kib.ksbnet.net/includes/database.php:40
+Stack trace:
+#0 /home/ksbnetne/kib.ksbnet.net/includes/database.php(40): PDO->prepare('SELECT DATE_FOR...')
+#1 /home/ksbnetne/kib.ksbnet.net/includes/database.php(51): Database::query('SELECT DATE_FOR...', Array)
+#2 /home/ksbnetne/kib.ksbnet.net/dashboard.php(88): Database::fetchAll('SELECT DATE_FOR...')
+#3 {main}
+  thrown in /home/ksbnetne/kib.ksbnet.net/includes/database.php on line 40
+[06-Mar-2026 00:23:03 Asia/Dhaka] PHP Warning:  Trying to access array offset on value of type null in /home/ksbnetne/kib.ksbnet.net/dashboard.php on line 13
+[06-Mar-2026 00:23:03 Asia/Dhaka] PHP Warning:  Trying to access array offset on value of type null in /home/ksbnetne/kib.ksbnet.net/dashboard.php on line 14
+[06-Mar-2026 00:23:03 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'GROUP BY month ORDER BY month ASC' at line 7 in /home/ksbnetne/kib.ksbnet.net/includes/database.php:40
+Stack trace:
+#0 /home/ksbnetne/kib.ksbnet.net/includes/database.php(40): PDO->prepare('SELECT DATE_FOR...')
+#1 /home/ksbnetne/kib.ksbnet.net/includes/database.php(51): Database::query('SELECT DATE_FOR...', Array)
+#2 /home/ksbnetne/kib.ksbnet.net/dashboard.php(88): Database::fetchAll('SELECT DATE_FOR...')
+#3 {main}
+  thrown in /home/ksbnetne/kib.ksbnet.net/includes/database.php on line 40
+[06-Mar-2026 00:23:35 Asia/Dhaka] PHP Warning:  Trying to access array offset on value of type null in /home/ksbnetne/kib.ksbnet.net/dashboard.php on line 13
+[06-Mar-2026 00:23:35 Asia/Dhaka] PHP Warning:  Trying to access array offset on value of type null in /home/ksbnetne/kib.ksbnet.net/dashboard.php on line 14
+[06-Mar-2026 00:23:35 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'GROUP BY month ORDER BY month ASC' at line 7 in /home/ksbnetne/kib.ksbnet.net/includes/database.php:40
+Stack trace:
+#0 /home/ksbnetne/kib.ksbnet.net/includes/database.php(40): PDO->prepare('SELECT DATE_FOR...')
+#1 /home/ksbnetne/kib.ksbnet.net/includes/database.php(51): Database::query('SELECT DATE_FOR...', Array)
+#2 /home/ksbnetne/kib.ksbnet.net/dashboard.php(88): Database::fetchAll('SELECT DATE_FOR...')
+#3 {main}
+  thrown in /home/ksbnetne/kib.ksbnet.net/includes/database.php on line 40
