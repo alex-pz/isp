@@ -8,9 +8,9 @@
 
 // --- এখানে আপনার হোস্টিং এর তথ্য দিন ---
 define('DB_HOST',     'localhost');
-define('DB_NAME',     'ksbnetne_kibksb');     // আপনার database নাম
-define('DB_USER',     'ksbnetne_kibksb');              // আপনার database user
-define('DB_PASS',     'ksbnetne_kibksb');                  // আপনার database password
+define('DB_NAME',     'dbname');     // আপনার database নাম
+define('DB_USER',     'dbuser');              // আপনার database user
+define('DB_PASS',     'dbpass');                  // আপনার database password
 define('DB_CHARSET',  'utf8mb4');
 
 // --- সাইটের URL (trailing slash ছাড়া) ---
